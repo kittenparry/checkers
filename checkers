@@ -1,0 +1,7 @@
+#!/usr/bin/env python3
+
+def start():
+	print('here be stuff')
+
+if __name__ == '__main__':
+	start()
