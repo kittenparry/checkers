@@ -138,6 +138,11 @@ def start():
 		# 	stdscr.addstr(2, 20, "Up")
 		# elif key == curses.KEY_DOWN: 
 		# 	stdscr.addstr(3, 20, "Down")
+
+		# TODO: maybe restrict the movement to discs?
+		# but how do i know disc positions if i can't even tell what's under the cursor?
+		# edit game_board on movement?
+		# again, probably should use a 4x8 grid, maybe
 		if key == curses.KEY_UP:
 			pos_x = pos_x - 1 if pos_x - 1 > 0 else 0
 		if key == curses.KEY_DOWN:
@@ -156,7 +161,7 @@ def start():
 			y_mod = 1
 		else:
 			y_mod = 0
-		
+
 		if key == curses.KEY_ENTER:
 			if str(''.join(str(stdscr.instr(pos_x + x_mod, pos_y +y_mod, 1)).split('\'')).replace('b', '')) == str(player):
 				stdscr.addstr(pos_x + x_mod, pos_y + y_mod, 'x')
