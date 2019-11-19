@@ -105,16 +105,22 @@ def start():
 	# starting and current player
 	player = 2
 	stdscr.addstr(0, 10, 'Hit \'q\' to quit')
+	stdscr.addstr(1, 10, 'Press any key to start...')
+	stdscr.addstr(3, 10, '----- --------')
 	stdscr.refresh()
 
 
 	pos_x = 0
 	pos_y = 0
+	sel_disc_x = -1
+	sel_disc_y = -1
 	disc_selected = False
 	key = ''
 	while key != ord('q'):
 		key = stdscr.getch()
+		stdscr.addstr(1, 10, '                         ')
 		stdscr.addstr(2, 10, 'Turn: Player-%d' % player)
+		stdscr.addstr(8, 10, 'sel:  %s%s   ' % (sel_disc_x, sel_disc_y))
 		for y in range(8):
 			for i, x in enumerate(game_board[y]):
 				if y % 2 == 0: # if border columns
@@ -191,21 +197,64 @@ def start():
 				if 'x' in row:
 					disc_selected = True
 
+			# deselect disc if one is selected by selecting it again
+			if disc_selected and current_tile == 'x':
+				disc_selected = False
+				sel_disc_x = -1
+				sel_disc_y = -1
+				game_board[pos_y][get_res_x(pos_y, pos_x)] = player
+				stdscr.addstr(pos_x, pos_y, str(player))
+
+			# select another disc when one is already selected
+			if disc_selected and current_tile == str(player):
+				game_board[sel_disc_y][get_res_x(sel_disc_y, sel_disc_x)] = player
+				stdscr.addstr(sel_disc_x, sel_disc_y, str(player))
+				game_board[pos_y][get_res_x(pos_y, pos_x)] = 'x'
+				sel_disc_x = pos_x
+				sel_disc_y = pos_y
+				stdscr.addstr(pos_x, pos_y, 'x')
+
 			# FIXME: actual game rules
 			if disc_selected and current_tile == '0':
-				stdscr.addstr(pos_x, pos_y, str(player))
-				for n, row in enumerate(game_board):
-					for i, x in enumerate(row):
-						if x == 'x':
-							# reset tile in board array
-							game_board[n][i] = 0
-							# set current tile to player's disc
-							game_board[pos_y][get_res_x(pos_y, pos_x)] = player
-							# temporarily draw onto tile where x was before re-draw
-							stdscr.addstr(get_act_x(n, i), n, '0')
-							disc_selected = False
-							# change turn
-							player = 2 if player == 1 else 1
+				illegal_move = True
+				diff_x = int((pos_x - sel_disc_x) / 2)
+				diff_y = int((pos_y - sel_disc_y) / 2)
+				opp_x, opp_y = calculate_opponent_pos(pos_x, pos_y, diff_x, diff_y)
+				stdscr.addstr(7, 10, 'dif:  %s%s   ' % (diff_x, diff_y))
+				stdscr.addstr(6, 10, 'opp:  %s%s   ' % (opp_x, opp_y))
+				opponent_tile = str(''.join(str(stdscr.instr(opp_x, opp_y, 1)).split('\'')).replace('b', ''))
+				opponent = str(1 if player == 2 else 2)
+
+				# only allow movement one step further or behind opponent
+				if diff_x == 0 and diff_y == 0:
+					illegal_move = False
+				elif opponent_tile == opponent:
+					illegal_move = False
+					game_board[opp_y][get_res_x(opp_y, opp_x)] = 0
+					stdscr.addstr(opp_x, opp_y, '0')
+				else:
+					illegal_move = True
+
+				if illegal_move:
+					stdscr.addstr(5, 10, '!! Illegal move')
+				else:
+					stdscr.addstr(5, 10, '               ')
+					# movement after if action is legal
+					stdscr.addstr(pos_x, pos_y, str(player))
+					for n, row in enumerate(game_board):
+						for i, x in enumerate(row):
+							if x == 'x':
+								# reset tile in board array
+								game_board[n][i] = 0
+								# set current tile to player's disc
+								game_board[pos_y][get_res_x(pos_y, pos_x)] = player
+								# temporarily draw onto tile where x was before re-draw
+								stdscr.addstr(get_act_x(n, i), n, '0')
+								disc_selected = False
+								sel_disc_x = -1
+								sel_disc_y = -1
+								# change turn
+								player = 2 if player == 1 else 1
 
 
 			# if current tile is of player's disc
@@ -214,8 +263,11 @@ def start():
 			if (current_tile == str(player)) and not disc_selected:
 				# set current tile to an x mark in board array
 				game_board[pos_y][get_res_x(pos_y, pos_x)] = 'x'
+				sel_disc_x = pos_x
+				sel_disc_y = pos_y
 				# temporarily draw x on current tile until re-draw on cursor move
 				stdscr.addstr(pos_x, pos_y, 'x')
+
 			# notify that it is the opponent's turn when wrong disc is selected
 			if (current_tile == str(1 if player == 2 else 2)) and not disc_selected:
 				stdscr.addstr(4, 10, '!! Player-%d\'s turn' % player)
@@ -241,6 +293,18 @@ def get_act_x(pos_y, pos_x):
 	else: # else altering columns
 		act_x = pos_x * 2 + 1
 	return act_x
+
+def calculate_opponent_pos(new_x, new_y, diff_x, diff_y):
+	"""Calculate opponent's position by movement difference.
+	
+	args:
+	new_x, new_y -- moved position of player
+	diff_x, diff_y -- difference between starting and ending position
+	"""
+	opp_x = new_x - diff_x
+	opp_y = new_y - diff_y
+	return opp_x, opp_y
+
 
 if __name__ == '__main__':
 	start()
