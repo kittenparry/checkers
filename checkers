@@ -105,15 +105,16 @@ def start():
 	# starting and current player
 	player = 2
 	stdscr.addstr(0, 10, 'Hit \'q\' to quit')
-	stdscr.addstr(2, 10, 'Turn: Player-%d' % player)
 	stdscr.refresh()
 
 
 	pos_x = 0
 	pos_y = 0
+	disc_selected = False
 	key = ''
 	while key != ord('q'):
 		key = stdscr.getch()
+		stdscr.addstr(2, 10, 'Turn: Player-%d' % player)
 		for y in range(8):
 			for i, x in enumerate(game_board[y]):
 				if y % 2 == 0: # if border columns
@@ -121,14 +122,7 @@ def start():
 				else: # else altering columns
 					add = i * 2 + 1
 				stdscr.addstr(add, y, str(x))
-		stdscr.addstr(3, 10, str(curses.getsyx()))
-		stdscr.addstr(4, 10, ''.join(str(stdscr.instr(pos_x, pos_y, 1)).split('\'')).replace('b', ''))
-		# stdscr.addch(20,25,key)
 		stdscr.refresh()
-		# if key == curses.KEY_UP: 
-		# 	stdscr.addstr(2, 20, "Up")
-		# elif key == curses.KEY_DOWN: 
-		# 	stdscr.addstr(3, 20, "Down")
 
 		# TODO: maybe restrict the movement to discs?
 		# but how do i know disc positions if i can't even tell what's under the cursor?
@@ -188,17 +182,65 @@ def start():
 				pos_y += 1
 
 		if key == 10:
+			# clear cursor's position of clutter, e.g. b'1' into 1
+			# FIXME: could probably use another replace instead of split join by single quote
 			current_tile = str(''.join(str(stdscr.instr(pos_x, pos_y, 1)).split('\'')).replace('b', ''))
-			if current_tile == str(player):
-				stdscr.addstr(pos_x, pos_y, 'x')
 
-		# stdscr.addstr(pos_x + x_mod, pos_y + y_mod, '')
-		# move might be better?
+			# check if player selected a tile
+			for row in game_board:
+				if 'x' in row:
+					disc_selected = True
+
+			# FIXME: actual game rules
+			if disc_selected and current_tile == '0':
+				stdscr.addstr(pos_x, pos_y, str(player))
+				for n, row in enumerate(game_board):
+					for i, x in enumerate(row):
+						if x == 'x':
+							# reset tile in board array
+							game_board[n][i] = 0
+							# set current tile to player's disc
+							game_board[pos_y][get_res_x(pos_y, pos_x)] = player
+							# temporarily draw onto tile where x was before re-draw
+							stdscr.addstr(get_act_x(n, i), n, '0')
+							disc_selected = False
+							# change turn
+							player = 2 if player == 1 else 1
+
+
+			# if current tile is of player's disc
+			# TODO: ability to deselect a disc
+			# or deselect by selecting another one?
+			if (current_tile == str(player)) and not disc_selected:
+				# set current tile to an x mark in board array
+				game_board[pos_y][get_res_x(pos_y, pos_x)] = 'x'
+				# temporarily draw x on current tile until re-draw on cursor move
+				stdscr.addstr(pos_x, pos_y, 'x')
+			# notify that it is the opponent's turn when wrong disc is selected
+			if (current_tile == str(1 if player == 2 else 2)) and not disc_selected:
+				stdscr.addstr(4, 10, '!! Player-%d\'s turn' % player)
+			else:
+				stdscr.addstr(4, 10, '                    ')
+
 		stdscr.move(pos_x, pos_y)
-		# curses.setsyx(pos_x + x_mod, pos_y + y_mod)
 
 	curses.endwin()
 
+def get_res_x(pos_y, pos_x):
+	"""Return the second level array position of a given tile."""
+	if pos_y % 2 == 0:
+		res_x = int(pos_x / 2)
+	else:
+		res_x = int((pos_x - 1 if pos_x > 0 else 0) / 2)
+	return res_x
+
+def get_act_x(pos_y, pos_x):
+	"""Do the reverse of above function. Array position into a tile position."""
+	if pos_y % 2 == 0: # if border columns
+		act_x = pos_x * 2
+	else: # else altering columns
+		act_x = pos_x * 2 + 1
+	return act_x
 
 if __name__ == '__main__':
 	start()
