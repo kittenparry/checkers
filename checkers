@@ -58,9 +58,6 @@ class COL:
 	BackgroundWhite = "\033[107m"
 
 def start():
-	print('%s%swhite* text on gray* bg%s' % (COL.BackgroundLightGray, COL.White, COL.ResetAll))
-	print('default text')
-
 	# FIXME: should probably reduce the game board to 4x8
 	# and fill the rest of unplayable ground visually on runtime
 	# or maybe replace 0s with -1s in unplayable squares
@@ -143,7 +140,17 @@ def start():
 			pos_y = pos_y - 1 if pos_y - 1 > 0 else 0
 		if key == curses.KEY_RIGHT:
 			pos_y = pos_y + 1 if pos_y + 1 < 7 else 7
-		stdscr.addstr(pos_x, pos_y, '')
+
+		# diagonal movement modifiers
+		if pos_x % 2 == 0 and pos_y % 2:
+			x_mod = 1
+		else:
+			x_mod = 0
+		if pos_y % 2 == 0 and pos_x % 2:
+			y_mod = 1
+		else:
+			y_mod = 0
+		stdscr.addstr(pos_x + x_mod, pos_y + y_mod, '')
 
 	curses.endwin()
 
