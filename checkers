@@ -102,30 +102,36 @@ def start():
 	curses.cbreak()
 	stdscr.keypad(1)
 
-	stdscr.addstr(0,10,"Hit 'q' to quit")
+	# starting and current player
+	player = 1
+	stdscr.addstr(0, 10, 'Hit \'q\' to quit')
+	stdscr.addstr(2, 10, 'Turn: Player-%d' % player)
 	stdscr.refresh()
+
+	for y in range(8):
+		for i, x in enumerate(game_board[y]):
+			# if y % 2 == 0:
+			# 	i += 1
+			# if i % 2 == 0:
+			# 	bg = COL.BackgroundLightGray
+			# 	fg = COL.Yellow
+			# else:
+			# 	bg = COL.BackgroundDefault
+			# 	if x == 2 or x == 4:
+			# 		fg = COL.LightRed
+			# 	elif x == 1 or x == 3:
+			# 		fg = COL.LightMagenta
+			# stdscr.addch(i, y, x)
+			# val = '%s%s%s%s' % (bg, fg, str(x), COL.ResetAll)
+			stdscr.addstr(i, y, str(x))
 
 	pos_x = 0
 	pos_y = 0
 	key = ''
 	while key != ord('q'):
 		key = stdscr.getch()
-		for y in range(8):
-			for i, x in enumerate(game_board[y]):
-				# if y % 2 == 0:
-				# 	i += 1
-				# if i % 2 == 0:
-				# 	bg = COL.BackgroundLightGray
-				# 	fg = COL.Yellow
-				# else:
-				# 	bg = COL.BackgroundDefault
-				# 	if x == 2 or x == 4:
-				# 		fg = COL.LightRed
-				# 	elif x == 1 or x == 3:
-				# 		fg = COL.LightMagenta
-				# stdscr.addch(i, y, x)
-				# val = '%s%s%s%s' % (bg, fg, str(x), COL.ResetAll)
-				stdscr.addstr(i, y, str(x))
+		stdscr.addstr(3, 10, str(curses.getsyx()))
+		stdscr.addstr(4, 10, ''.join(str(stdscr.instr(pos_x, pos_y, 1)).split('\'')).replace('b', ''))
 		# stdscr.addch(20,25,key)
 		stdscr.refresh()
 		# if key == curses.KEY_UP: 
@@ -150,27 +156,17 @@ def start():
 			y_mod = 1
 		else:
 			y_mod = 0
-		stdscr.addstr(pos_x + x_mod, pos_y + y_mod, '')
+		
+		if key == curses.KEY_ENTER:
+			if str(''.join(str(stdscr.instr(pos_x + x_mod, pos_y +y_mod, 1)).split('\'')).replace('b', '')) == str(player):
+				stdscr.addstr(pos_x + x_mod, pos_y + y_mod, 'x')
+
+		# stdscr.addstr(pos_x + x_mod, pos_y + y_mod, '')
+		# move might be better?
+		stdscr.move(pos_x + x_mod, pos_y + y_mod)
+		# curses.setsyx(pos_x + x_mod, pos_y + y_mod)
 
 	curses.endwin()
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 
 
 if __name__ == '__main__':
