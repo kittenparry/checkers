@@ -162,7 +162,7 @@ def start():
 		else:
 			y_mod = 0
 
-		if key == curses.KEY_ENTER:
+		if key == 10:
 			if str(''.join(str(stdscr.instr(pos_x + x_mod, pos_y +y_mod, 1)).split('\'')).replace('b', '')) == str(player):
 				stdscr.addstr(pos_x + x_mod, pos_y + y_mod, 'x')
 
