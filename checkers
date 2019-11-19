@@ -110,11 +110,15 @@ def start():
 	stdscr.refresh()
 
 
+	# current tile position
 	pos_x = 0
 	pos_y = 0
+	# selected disc x, y, and value (to preserve if king)
 	sel_disc_x = -1
 	sel_disc_y = -1
+	sel_disc = ''
 	disc_selected = False
+
 	key = ''
 	while key != ord('q'):
 		key = stdscr.getch()
@@ -203,15 +207,17 @@ def start():
 				sel_disc_x = -1
 				sel_disc_y = -1
 				game_board[pos_y][get_res_x(pos_y, pos_x)] = player
-				stdscr.addstr(pos_x, pos_y, str(player))
+				stdscr.addstr(pos_x, pos_y, sel_disc)
+				sel_disc = ''
 
 			# select another disc when one is already selected
-			if disc_selected and current_tile == str(player):
-				game_board[sel_disc_y][get_res_x(sel_disc_y, sel_disc_x)] = player
-				stdscr.addstr(sel_disc_x, sel_disc_y, str(player))
+			if disc_selected and (current_tile == str(player) or current_tile == str(player + 2)):
+				game_board[sel_disc_y][get_res_x(sel_disc_y, sel_disc_x)] = int(sel_disc)
+				stdscr.addstr(sel_disc_x, sel_disc_y, sel_disc)
 				game_board[pos_y][get_res_x(pos_y, pos_x)] = 'x'
 				sel_disc_x = pos_x
 				sel_disc_y = pos_y
+				sel_disc = current_tile
 				stdscr.addstr(pos_x, pos_y, 'x')
 
 			# FIXME: actual game rules
@@ -221,14 +227,14 @@ def start():
 				diff_y = int((pos_y - sel_disc_y) / 2)
 				opp_x, opp_y = calculate_opponent_pos(pos_x, pos_y, diff_x, diff_y)
 				stdscr.addstr(7, 10, 'dif:  %s%s   ' % (diff_x, diff_y))
-				stdscr.addstr(6, 10, 'opp:  %s%s   ' % (opp_x, opp_y))
+				stdscr.addstr(9, 10, 'opp:  %s%s   ' % (opp_x, opp_y))
 				opponent_tile = str(''.join(str(stdscr.instr(opp_x, opp_y, 1)).split('\'')).replace('b', ''))
 				opponent = str(1 if player == 2 else 2)
 
 				# only allow movement one step further or behind opponent
 				if diff_x == 0 and diff_y == 0:
 					illegal_move = False
-				elif opponent_tile == opponent:
+				elif opponent_tile == opponent or opponent_tile == str(int(opponent) + 2):
 					illegal_move = False
 					game_board[opp_y][get_res_x(opp_y, opp_x)] = 0
 					stdscr.addstr(opp_x, opp_y, '0')
@@ -240,19 +246,26 @@ def start():
 				else:
 					stdscr.addstr(5, 10, '               ')
 					# movement after if action is legal
-					stdscr.addstr(pos_x, pos_y, str(player))
 					for n, row in enumerate(game_board):
 						for i, x in enumerate(row):
 							if x == 'x':
 								# reset tile in board array
 								game_board[n][i] = 0
 								# set current tile to player's disc
-								game_board[pos_y][get_res_x(pos_y, pos_x)] = player
+								res_player = int(sel_disc)
+								stdscr.addstr(6, 10, '                              ')
+								# check if end of the board and disc isn't already a king
+								if is_at_end(pos_x, pos_y, player) and res_player < 3:
+									res_player += 2
+									stdscr.addstr(6, 10, '!! Player-%d crowned a king' % player)
+								game_board[pos_y][get_res_x(pos_y, pos_x)] = res_player
+								stdscr.addstr(pos_x, pos_y, str(res_player))
 								# temporarily draw onto tile where x was before re-draw
 								stdscr.addstr(get_act_x(n, i), n, '0')
 								disc_selected = False
 								sel_disc_x = -1
 								sel_disc_y = -1
+								sel_disc = ''
 								# change turn
 								player = 2 if player == 1 else 1
 
@@ -260,16 +273,17 @@ def start():
 			# if current tile is of player's disc
 			# TODO: ability to deselect a disc
 			# or deselect by selecting another one?
-			if (current_tile == str(player)) and not disc_selected:
+			if (current_tile == str(player) or current_tile == str(player + 2)) and not disc_selected:
 				# set current tile to an x mark in board array
 				game_board[pos_y][get_res_x(pos_y, pos_x)] = 'x'
 				sel_disc_x = pos_x
 				sel_disc_y = pos_y
+				sel_disc = current_tile
 				# temporarily draw x on current tile until re-draw on cursor move
 				stdscr.addstr(pos_x, pos_y, 'x')
 
 			# notify that it is the opponent's turn when wrong disc is selected
-			if (current_tile == str(1 if player == 2 else 2)) and not disc_selected:
+			if (current_tile == str(1 if player == 2 else 2) or current_tile == str(3 if player == 2 else 4)) and not disc_selected:
 				stdscr.addstr(4, 10, '!! Player-%d\'s turn' % player)
 			else:
 				stdscr.addstr(4, 10, '                    ')
@@ -304,6 +318,17 @@ def calculate_opponent_pos(new_x, new_y, diff_x, diff_y):
 	opp_x = new_x - diff_x
 	opp_y = new_y - diff_y
 	return opp_x, opp_y
+
+def is_at_end(pos_x, pos_y, player):
+	"""Determine if player has reached end of the board and earned a promotion."""
+	if player == 1:
+		if (pos_y == 0 and pos_x % 2 == 0) or (pos_y == 1 and pos_x % 2 == 1):
+			return True
+		return False
+	else:
+		if (pos_y == 6 and pos_x % 2 == 0) or (pos_y == 7 and pos_x % 2 == 1):
+			return True
+		return False
 
 
 if __name__ == '__main__':
