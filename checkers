@@ -58,10 +58,6 @@ class COL:
 	BackgroundWhite = "\033[107m"
 
 def start():
-	# FIXME: should probably reduce the game board to 4x8
-	# and fill the rest of unplayable ground visually on runtime
-	# or maybe replace 0s with -1s in unplayable squares
-
 	# hand-made for now
 	# 1s and 3s are player-1's discs and kings
 	# 2s and 4s are player-2's discs and kings
@@ -76,40 +72,19 @@ def start():
 		[1, 1, 1, 1],
 	]
 
-	# loop through it to draw the game board
-	# different colours depending on player discs
-	# dark bg for inactive squares for visibility
-	# for y in range(8):
-	# 	for i, x in enumerate(game_board[y]):
-	# 		# to alternate colour orders between rows
-	# 		if y % 2 == 0:
-	# 			i += 1
-	# 		if i % 2 == 0:
-	# 			bg = COL.BackgroundLightGray
-	# 			fg = COL.Yellow
-	# 		else:
-	# 			bg = COL.BackgroundDefault
-	# 			if x == 2 or x == 4:
-	# 				fg = COL.LightRed
-	# 			elif x == 1 or x == 3:
-	# 				fg = COL.LightMagenta
-	# 		sys.stdout.write('%s%s%s%s' % (bg, fg, str(x), COL.ResetAll))
-	# 	sys.stdout.write('\n')
-	# sys.stdout.flush()
-
-# source: https://stackoverflow.com/a/10694430/4085881
+	# initial source: https://stackoverflow.com/a/10694430/4085881
 	stdscr = curses.initscr()
 	curses.cbreak()
 	stdscr.keypad(1)
 
-	# starting and current player
-	player = 2
 	stdscr.addstr(0, 10, 'Hit \'q\' to quit')
 	stdscr.addstr(1, 10, 'Press any key to start...')
 	stdscr.addstr(3, 10, '----- --------')
 	stdscr.refresh()
 
 
+	# starting and current player
+	player = 2
 	# current tile position
 	pos_x = 0
 	pos_y = 0
@@ -124,7 +99,6 @@ def start():
 		key = stdscr.getch()
 		stdscr.addstr(1, 10, '                         ')
 		stdscr.addstr(2, 10, 'Turn: Player-%d' % player)
-		stdscr.addstr(8, 10, 'sel:  %s%s   ' % (sel_disc_x, sel_disc_y))
 		for y in range(8):
 			for i, x in enumerate(game_board[y]):
 				if y % 2 == 0: # if border columns
@@ -134,10 +108,6 @@ def start():
 				stdscr.addstr(add, y, str(x))
 		stdscr.refresh()
 
-		# TODO: maybe restrict the movement to discs?
-		# but how do i know disc positions if i can't even tell what's under the cursor?
-		# edit game_board on movement?
-		# again, probably should use a 4x8 grid, maybe
 		if key == curses.KEY_UP:
 			# if 2nd row, move one up-left (diagonal)
 			if pos_x == 1:
@@ -206,7 +176,7 @@ def start():
 				disc_selected = False
 				sel_disc_x = -1
 				sel_disc_y = -1
-				game_board[pos_y][get_res_x(pos_y, pos_x)] = player
+				game_board[pos_y][get_res_x(pos_y, pos_x)] = int(sel_disc)
 				stdscr.addstr(pos_x, pos_y, sel_disc)
 				sel_disc = ''
 
@@ -220,14 +190,13 @@ def start():
 				sel_disc = current_tile
 				stdscr.addstr(pos_x, pos_y, 'x')
 
-			# FIXME: actual game rules
+			# TODO: add mandatory rule of destroying opponent's piece if in position
 			if disc_selected and current_tile == '0':
 				illegal_move = True
 				diff_x = int((pos_x - sel_disc_x) / 2)
 				diff_y = int((pos_y - sel_disc_y) / 2)
+				is_in_right_direction = calculate_direction(sel_disc_y, pos_y, sel_disc, player)
 				opp_x, opp_y = calculate_opponent_pos(pos_x, pos_y, diff_x, diff_y)
-				stdscr.addstr(7, 10, 'dif:  %s%s   ' % (diff_x, diff_y))
-				stdscr.addstr(9, 10, 'opp:  %s%s   ' % (opp_x, opp_y))
 				opponent_tile = str(''.join(str(stdscr.instr(opp_x, opp_y, 1)).split('\'')).replace('b', ''))
 				opponent = str(1 if player == 2 else 2)
 
@@ -239,6 +208,8 @@ def start():
 					game_board[opp_y][get_res_x(opp_y, opp_x)] = 0
 					stdscr.addstr(opp_x, opp_y, '0')
 				else:
+					illegal_move = True
+				if not is_in_right_direction:
 					illegal_move = True
 
 				if illegal_move:
@@ -270,9 +241,7 @@ def start():
 								player = 2 if player == 1 else 1
 
 
-			# if current tile is of player's disc
-			# TODO: ability to deselect a disc
-			# or deselect by selecting another one?
+			# if current tile is of player's disc select it
 			if (current_tile == str(player) or current_tile == str(player + 2)) and not disc_selected:
 				# set current tile to an x mark in board array
 				game_board[pos_y][get_res_x(pos_y, pos_x)] = 'x'
@@ -329,6 +298,21 @@ def is_at_end(pos_x, pos_y, player):
 		if (pos_y == 6 and pos_x % 2 == 0) or (pos_y == 7 and pos_x % 2 == 1):
 			return True
 		return False
+
+def calculate_direction(old_y, new_y, disc, player):
+	"""Check if disc is moved in the correct direction.
+	By checking difference between its old and new y val.
+	Always true for kings.
+	"""
+	if int(disc) > 2:
+		return True
+	if player == 1:
+		if new_y < old_y:
+			return True
+	else:
+		if new_y > old_y:
+			return True
+	return False
 
 
 if __name__ == '__main__':
