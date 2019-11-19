@@ -66,14 +66,24 @@ def start():
 	# 1s and 3s are player-1's discs and kings
 	# 2s and 4s are player-2's discs and kings
 	game_board = [
-	[2, 0, 2, 0, 2, 0, 2, 0],
-	[0, 2, 0, 2, 0, 2, 0, 2],
-	[2, 0, 2, 0, 2, 0, 2, 0],
-	[0, 0, 0, 0, 0, 0, 0, 0],
-	[0, 0, 0, 0, 0, 0, 0, 0],
-	[0, 1, 0, 1, 0, 1, 0, 1],
-	[1, 0, 1, 0, 1, 0, 1, 0],
-	[0, 1, 0, 1, 0, 1, 0, 1],
+	[2, '', 2, '', 2, '', 2, ''],
+	['', 2, '', 2, '', 2, '', 2],
+	[2, '', 2, '', 2, '', 2, ''],
+	['', 0, '', 0, '', 0, '', 0],
+	[0, '', 0, '', 0, '', 0, ''],
+	['', 1, '', 1, '', 1, '', 1],
+	[1, '', 1, '', 1, '', 1, ''],
+	['', 1, '', 1, '', 1, '', 1],
+	]
+	game_board = [
+		[2, 2, 2, 2],
+		[2, 2, 2, 2],
+		[2, 2, 2, 2],
+		[0, 0, 0, 0],
+		[0, 0, 0, 0],
+		[1, 1, 1, 1],
+		[1, 1, 1, 1],
+		[1, 1, 1, 1],
 	]
 
 	# loop through it to draw the game board
@@ -103,33 +113,24 @@ def start():
 	stdscr.keypad(1)
 
 	# starting and current player
-	player = 1
+	player = 2
 	stdscr.addstr(0, 10, 'Hit \'q\' to quit')
 	stdscr.addstr(2, 10, 'Turn: Player-%d' % player)
 	stdscr.refresh()
 
-	for y in range(8):
-		for i, x in enumerate(game_board[y]):
-			# if y % 2 == 0:
-			# 	i += 1
-			# if i % 2 == 0:
-			# 	bg = COL.BackgroundLightGray
-			# 	fg = COL.Yellow
-			# else:
-			# 	bg = COL.BackgroundDefault
-			# 	if x == 2 or x == 4:
-			# 		fg = COL.LightRed
-			# 	elif x == 1 or x == 3:
-			# 		fg = COL.LightMagenta
-			# stdscr.addch(i, y, x)
-			# val = '%s%s%s%s' % (bg, fg, str(x), COL.ResetAll)
-			stdscr.addstr(i, y, str(x))
 
 	pos_x = 0
 	pos_y = 0
 	key = ''
 	while key != ord('q'):
 		key = stdscr.getch()
+		for y in range(8):
+			for i, x in enumerate(game_board[y]):
+				if y % 2 == 0: # if border columns
+					add = i * 2
+				else: # else altering columns
+					add = i * 2 + 1
+				stdscr.addstr(add, y, str(x))
 		stdscr.addstr(3, 10, str(curses.getsyx()))
 		stdscr.addstr(4, 10, ''.join(str(stdscr.instr(pos_x, pos_y, 1)).split('\'')).replace('b', ''))
 		# stdscr.addch(20,25,key)
