@@ -66,16 +66,6 @@ def start():
 	# 1s and 3s are player-1's discs and kings
 	# 2s and 4s are player-2's discs and kings
 	game_board = [
-	[2, '', 2, '', 2, '', 2, ''],
-	['', 2, '', 2, '', 2, '', 2],
-	[2, '', 2, '', 2, '', 2, ''],
-	['', 0, '', 0, '', 0, '', 0],
-	[0, '', 0, '', 0, '', 0, ''],
-	['', 1, '', 1, '', 1, '', 1],
-	[1, '', 1, '', 1, '', 1, ''],
-	['', 1, '', 1, '', 1, '', 1],
-	]
-	game_board = [
 		[2, 2, 2, 2],
 		[2, 2, 2, 2],
 		[2, 2, 2, 2],
@@ -145,31 +135,66 @@ def start():
 		# edit game_board on movement?
 		# again, probably should use a 4x8 grid, maybe
 		if key == curses.KEY_UP:
-			pos_x = pos_x - 1 if pos_x - 1 > 0 else 0
+			# if 2nd row, move one up-left (diagonal)
+			if pos_x == 1:
+				pos_x -= 1
+				pos_y -= 1
+			# else move two up (vertical)
+			else:
+				pos_x = pos_x - 2 if pos_x - 2 > 0 else 0
 		if key == curses.KEY_DOWN:
-			pos_x = pos_x + 1 if pos_x + 1 < 7 else 7
+			# if 7th row, move one bottom-right (diagonal)
+			if pos_x == 6:
+				pos_x += 1
+				pos_y += 1
+			# else move two down (vertical)
+			else:
+				pos_x = pos_x + 2 if pos_x + 2 < 7 else 7
 		if key == curses.KEY_LEFT:
-			pos_y = pos_y - 1 if pos_y - 1 > 0 else 0
+			# don't do anything at 0, 0 or x, 0
+			if (pos_x == 0 and pos_y == 0) or pos_y == 0:
+				pass
+			# if topmost row, move bottom-left (diagonal)
+			elif pos_x == 0 and pos_y != 0:
+				pos_x += 1
+				pos_y -= 1
+			# if bottommost row, move top-left (diagonal)
+			elif pos_x == 7:
+				pos_x -= 1
+				pos_y -= 1
+			# if odd rows, move bottom-left (diagonal)
+			elif pos_x % 2 == 1:
+				pos_x -= 1
+				pos_y -= 1
+			# if even rows, move top-left (diagonal)
+			else:
+				pos_x += 1
+				pos_y -= 1
 		if key == curses.KEY_RIGHT:
-			pos_y = pos_y + 1 if pos_y + 1 < 7 else 7
-
-		# diagonal movement modifiers
-		if pos_x % 2 == 0 and pos_y % 2:
-			x_mod = 1
-		else:
-			x_mod = 0
-		if pos_y % 2 == 0 and pos_x % 2:
-			y_mod = 1
-		else:
-			y_mod = 0
+			# don't do anything at 1, 7 or x, 7
+			if (pos_x == 1 and pos_y == 7) or pos_y == 7:
+				pass
+			# if topmost row, move bottom-right (diagonal)
+			elif pos_x == 0 and pos_y != 7:
+				pos_x += 1
+				pos_y += 1
+			# if odd rows, move bottom-right (diagonal)
+			elif pos_x % 2 == 1:
+				pos_x -= 1
+				pos_y += 1
+			# if even rows, move top-right (diagonal)
+			else:
+				pos_x += 1
+				pos_y += 1
 
 		if key == 10:
-			if str(''.join(str(stdscr.instr(pos_x + x_mod, pos_y +y_mod, 1)).split('\'')).replace('b', '')) == str(player):
-				stdscr.addstr(pos_x + x_mod, pos_y + y_mod, 'x')
+			current_tile = str(''.join(str(stdscr.instr(pos_x, pos_y, 1)).split('\'')).replace('b', ''))
+			if current_tile == str(player):
+				stdscr.addstr(pos_x, pos_y, 'x')
 
 		# stdscr.addstr(pos_x + x_mod, pos_y + y_mod, '')
 		# move might be better?
-		stdscr.move(pos_x + x_mod, pos_y + y_mod)
+		stdscr.move(pos_x, pos_y)
 		# curses.setsyx(pos_x + x_mod, pos_y + y_mod)
 
 	curses.endwin()
