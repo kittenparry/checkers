@@ -189,6 +189,7 @@ def start():
 								sel_disc = ''
 								# change turn
 								player = 2 if player == 1 else 1
+								stdscr.addstr(2, 10, 'Turn: Player-%d' % player)
 
 
 			# if current tile is of player's disc select it
