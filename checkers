@@ -286,7 +286,7 @@ def is_required_to_capture(player, game_board):
 					if disc == player:
 						if y + 2 < 8 and x - 1 >= 0: # valid top-right move
 							opp_space = game_board[y + 1][x - 1]
-							if opp_space in opp:
+							if opp_space in opp: # FIXME: AND if valid tile is empty
 								required_moves.append([y + 2, x - 1])
 						if y + 2 < 8 and x + 1 < 4: # valid bottom-right move
 							opp_space = game_board[y + 1][x]
