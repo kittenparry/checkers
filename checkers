@@ -163,16 +163,21 @@ def start():
 				if not is_in_right_direction:
 					illegal_move = True
 				
+				capture_required = False
 				requirements_array = is_required_to_capture(player, game_board)
 				if len(requirements_array) > 0:
-					illegal_move = True
+					capture_required = True
+					# FIXME: allow one out of multiple capture moves
 					for reqs in requirements_array:
 						stdscr.addstr(get_act_x(reqs[0], reqs[1]), reqs[0], ' ', curses.color_pair(2))
+					# TODO: likely here by checking current tile with one of the required and turning capture required false
 
-				if illegal_move:
+				if capture_required:
+					stdscr.addstr(5, 10, '!! Capture required')
+				elif illegal_move:
 					stdscr.addstr(5, 10, '!! Illegal move')
 				else:
-					stdscr.addstr(5, 10, '               ')
+					stdscr.addstr(5, 10, '                   ')
 					# movement after if action is legal
 					for n, row in enumerate(game_board):
 						for i, x in enumerate(row):
@@ -318,7 +323,7 @@ def is_required_to_capture(player, game_board):
 							if opp_space in opp and game_board[y - 2][x - 1] == ' ':
 								required_moves.append([y - 2, x - 1])
 						if y - 2 >= 0 and x + 1 < 4: # valid bottom-left move
-							opp_space = game_board[y - 1][x - 1]
+							opp_space = game_board[y - 1][x + 1]
 							if opp_space in opp and game_board[y - 2][x + 1] == ' ':
 								required_moves.append([y - 2, x + 1])
 	else:
@@ -353,7 +358,7 @@ def is_required_to_capture(player, game_board):
 							if opp_space in opp and game_board[y - 2][x - 1] == ' ':
 								required_moves.append([y - 2, x - 1])
 						if y - 2 >= 0 and x + 1 < 4: # valid bottom-left move
-							opp_space = game_board[y - 1][x - 1]
+							opp_space = game_board[y - 1][x + 1]
 							if opp_space in opp and game_board[y - 2][x + 1] == ' ':
 								required_moves.append([y - 2, x + 1])
 					if disc == player + 2:
