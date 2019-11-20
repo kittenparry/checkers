@@ -23,6 +23,7 @@ def start():
 	curses.start_color()
 	curses.use_default_colors()
 	curses.init_pair(1, curses.COLOR_BLACK, curses.COLOR_GREEN) # red background is also neat
+	curses.init_pair(2, curses.COLOR_BLACK, curses.COLOR_RED) # warn player on required moves
 	curses.cbreak()
 	stdscr.keypad(1)
 
@@ -35,7 +36,7 @@ def start():
 
 	# starting and current player
 	player = 2
-	# current tile position
+	# current cursor position
 	pos_x = 0
 	pos_y = 0
 	# selected disc x, y, and value (to preserve if king)
@@ -264,6 +265,63 @@ def calculate_direction(old_y, new_y, disc, player):
 		if new_y > old_y:
 			return True
 	return False
+
+def is_required_to_capture(player, game_board):
+	"""Calculate if a player needs to make a capture based on the position of discs,
+	and possible movement patterns.
+	"""
+	required_moves = []
+	if player == 2:
+		opp_disc = 1
+		opp_king = 3
+		for y, row in enumerate(game_board):
+			for x, disc in enumerate(row):
+				# forward only move checks
+				if disc == player:
+					# game_board[y][x]
+					if y + 2 < 8 and x - 2 >= 0: # valid bottom-left free space
+						opp_space = game_board[y + 1][x - 1]
+						if opp_space == opp_disc or opp_space == opp_king: # opponent exists
+							required_moves.append([y + 2, x - 2])
+					if y + 2 < 8 and x + 2 < 4: # valid bottom-right free space
+						opp_space = game_board[y + 1][x + 1]
+						if opp_space == opp_disc or opp_space == opp_king: # opponent exists
+							required_moves.append([y + 2, x + 2])
+				# additional backward move checks for kings
+				if disc == player + 2:
+					if y - 2 >= 0 and x - 2 >= 0: # valid top-left free space
+						opp_space = game_board[y - 1][x - 1]
+						if opp_space == opp_disc or opp_space == opp_king:
+							required_moves.append([y - 2, x - 2])
+					if y - 2 >= 0 and x + 2 < 4: # valid top-right free space
+						opp_space = game_board[y - 1][x + 1]
+						if opp_space == opp_disc or opp_space == opp_king:
+							required_moves.append([y - 2, x + 2])
+	else:
+		opp_disc = 2
+		opp_disc = 4
+		for y, row in enumerate(game_board):
+			for x, disc in enumerate(row):
+				if disc == player:
+					if y - 2 >= 0 and x - 2 >= 0: # valid top-left free space
+						opp_space = game_board[y - 1][x - 1]
+						if opp_space == opp_disc or opp_space == opp_king:
+							required_moves.append([y - 2, x - 2])
+					if y - 2 >= 0 and x + 2 < 4: # valid top-right free space
+						opp_space = game_board[y - 1][x + 1]
+						if opp_space == opp_disc or opp_space == opp_king:
+							required_moves.append([y - 2, x + 2])
+				if disc == player + 2:
+					if y + 2 < 8 and x - 2 >= 0: # valid bottom-left free space
+						opp_space = game_board[y + 1][x - 1]
+						if opp_space == opp_disc or opp_space == opp_king:
+							required_moves.append([y + 2, x - 2])
+					if y + 2 < 8 and x + 2 < 4: # valid bottom-right free space
+						opp_space = game_board[y + 1][x + 1]
+						if opp_space == opp_disc or opp_space == opp_king:
+							required_moves.append([y + 2, x + 2])
+	return required_moves
+
 
 
 if __name__ == '__main__':
