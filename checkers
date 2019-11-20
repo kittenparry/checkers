@@ -151,6 +151,8 @@ def start():
 				opponent_tile = str(''.join(str(stdscr.instr(opp_x, opp_y, 1)).split('\'')).replace('b', ''))
 				opponent = str(1 if player == 2 else 2)
 
+				# check if required to capture
+				requirements_array = is_required_to_capture(player, game_board)
 				# only allow movement one step further or behind opponent
 				if diff_x == 0 and diff_y == 0:
 					illegal_move = False
@@ -163,19 +165,19 @@ def start():
 				if not is_in_right_direction:
 					illegal_move = True
 				
+				stdscr.addstr(8, 10, 'cur:  %s%s   ' % (pos_x, pos_y))
 				capture_required = False
-				requirements_array = is_required_to_capture(player, game_board)
 				if len(requirements_array) > 0:
 					capture_required = True
-					# FIXME: allow one out of multiple capture moves
 					for reqs in requirements_array:
 						stdscr.addstr(get_act_x(reqs[0], reqs[1]), reqs[0], ' ', curses.color_pair(2))
-					# TODO: likely here by checking current tile with one of the required and turning capture required false
+						if pos_x == get_act_x(reqs[0], reqs[1]) and pos_y == reqs[0]:
+							capture_required = False
 
 				if capture_required:
 					stdscr.addstr(5, 10, '!! Capture required')
 				elif illegal_move:
-					stdscr.addstr(5, 10, '!! Illegal move')
+					stdscr.addstr(5, 10, '!! Illegal move    ')
 				else:
 					stdscr.addstr(5, 10, '                   ')
 					# movement after if action is legal
