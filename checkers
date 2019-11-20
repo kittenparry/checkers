@@ -12,8 +12,8 @@ def start():
 		[2, 2, 2, 2],
 		[2, 2, 2, 2],
 		[2, 2, 2, 2],
-		[0, 0, 0, 0],
-		[0, 0, 0, 0],
+		[' ', ' ', ' ', ' '],
+		[' ', ' ', ' ', ' '],
 		[1, 1, 1, 1],
 		[1, 1, 1, 1],
 		[1, 1, 1, 1],
@@ -141,7 +141,7 @@ def start():
 				stdscr.addstr(pos_x, pos_y, 'x', curses.color_pair(1))
 
 			# TODO: add mandatory rule of destroying opponent's piece if in position
-			if disc_selected and current_tile == '0':
+			if disc_selected and current_tile == ' ':
 				illegal_move = True
 				diff_x = int((pos_x - sel_disc_x) / 2)
 				diff_y = int((pos_y - sel_disc_y) / 2)
@@ -155,8 +155,8 @@ def start():
 					illegal_move = False
 				elif opponent_tile == opponent or opponent_tile == str(int(opponent) + 2):
 					illegal_move = False
-					game_board[opp_y][get_res_x(opp_y, opp_x)] = 0
-					stdscr.addstr(opp_x, opp_y, '0', curses.color_pair(1))
+					game_board[opp_y][get_res_x(opp_y, opp_x)] = ' '
+					stdscr.addstr(opp_x, opp_y, ' ', curses.color_pair(1))
 				else:
 					illegal_move = True
 				if not is_in_right_direction:
@@ -171,7 +171,7 @@ def start():
 						for i, x in enumerate(row):
 							if x == 'x':
 								# reset tile in board array
-								game_board[n][i] = 0
+								game_board[n][i] = ' '
 								# set current tile to player's disc
 								res_player = int(sel_disc)
 								stdscr.addstr(6, 10, '                              ')
@@ -182,7 +182,7 @@ def start():
 								game_board[pos_y][get_res_x(pos_y, pos_x)] = res_player
 								stdscr.addstr(pos_x, pos_y, str(res_player), curses.color_pair(1))
 								# temporarily draw onto tile where x was before re-draw
-								stdscr.addstr(get_act_x(n, i), n, '0', curses.color_pair(1))
+								stdscr.addstr(get_act_x(n, i), n, ' ', curses.color_pair(1))
 								disc_selected = False
 								sel_disc_x = -1
 								sel_disc_y = -1
