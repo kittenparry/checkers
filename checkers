@@ -290,7 +290,7 @@ def is_required_to_capture(player, game_board):
 			for x, disc in enumerate(row):
 				if y % 2 == 0: # if even (not indented row)
 					# forward only move checks
-					if disc == player:
+					if disc == player: # FIXME: or disc == 'x'
 						if y + 2 < 8 and x - 1 >= 0: # valid top-right move
 							opp_space = game_board[y + 1][x - 1]
 							if opp_space in opp and game_board[y + 2][x - 1] == ' ':
