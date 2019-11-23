@@ -170,12 +170,16 @@ def start():
 				if len(requirements_array) > 0:
 					capture_required = True
 					for reqs in requirements_array:
-						stdscr.addstr(get_act_x(reqs[0], reqs[1]), reqs[0], ' ', curses.color_pair(2))
 						# FIXME: lets go even if the wrong piece moves to the tile without capturing the opponent
 						# should probably add a check to see if the opponent is gone
 						# which requires opponent to be also returned from the function, i think
 						if pos_x == get_act_x(reqs[0], reqs[1]) and pos_y == reqs[0]:
 							capture_required = False
+					# loop above to check if player moved to one of the required tiles
+					# highlight only if didn't move to one of the tiles
+					if capture_required:
+						for reqs in requirements_array:
+							stdscr.addstr(get_act_x(reqs[0], reqs[1]), reqs[0], ' ', curses.color_pair(2))
 
 				if capture_required:
 					stdscr.addstr(5, 10, '!! Capture required')
